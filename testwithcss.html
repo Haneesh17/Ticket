@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticketing Tool</title>
+    <style>
+        /* Body styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+            background-color: #f0f8ff; /* Light blue background */
+            color: #333; /* Dark text for readability */
+        }
+
+        h1, h3 {
+            color: #1e3a8a; /* Dark blue color for headers */
+        }
+
+        /* Select and Button styles */
+        select, button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #ffffff; /* White background */
+            color: #333;
+            margin: 5px;
+        }
+
+        select:focus, button:focus {
+            border-color: #1e3a8a; /* Focused state with dark blue border */
+            outline: none;
+            box-shadow: 0 0 5px rgba(30, 58, 138, 0.5);
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #ffffff; /* White table background */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #1e3a8a; /* Dark blue header */
+            color: white;
+        }
+
+        td {
+            background-color: #f7fafc; /* Very light blue for rows */
+        }
+
+        tr:nth-child(even) td {
+            background-color: #e2e8f0; /* Lighter blue for alternating rows */
+        }
+
+        tr:hover td {
+            background-color: #cbd5e1; /* Light gray-blue on hover */
+        }
+
+        /* Label styling */
+        label {
+            font-size: 16px;
+            margin-right: 10px;
+            color: #1e3a8a; /* Dark blue for labels */
+        }
+
+        /* Button Styling */
+        button {
+            background-color: #1e3a8a; /* Dark blue background */
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3b82f6; /* Lighter blue on hover */
+        }
+
+        /* Incident Section Styles */
+        #incidents {
+            margin-top: 40px;
+        }
+
+        /* Select dropdown styles */
+        select {
+            background-color: #e2e8f0; /* Light blue background for dropdown */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Ticket Mate</h1>
+
+    <h3>Manage Incidents</h3>
+
+    <label for="incidentSelect">Select Incident:</label>
+    <select id="incidentSelect" onchange="populateOSAndAssignee()">
+        <option value="">Select an Incident</option>
+    </select>
+
+    <label for="assigneeSelect">Assign to:</label>
+    <select id="assigneeSelect">
+        <!-- Dynamic Assignees will appear here -->
+    </select>
+
+    <button onclick="assignIncident()">Assign Incident</button>
+
+    <h3>Incidents List</h3>
+    <table id="incidents">
+        <thead>
+            <tr>
+                <th>INC Number</th>
+                <th>Assignee</th>
+                <th>Time Created</th>
+                <th>Assignment Group</th>
+                <th>OS</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dynamic Incident Data Will Appear Here -->
+        </tbody>
+    </table>
+
+    <script>
+        // Static database
+        const assignmentGroup = "HCL GCP";
+        const maxIncidents = 15;
+
+        // Assignees
+        const assignees = {
+            windows: ["Ayesha", "Irshad", "Jagan", "Kishore"],
+            linux: ["Bhavana", "Haneesh", "Vetri", "Madhuri"]
+        };
+
+        // Create an array to store incidents
+        let incidents = [];
+
+        // Function to generate a random time of the day
+        function getRandomTime() {
+            const randomHour = Math.floor(Math.random() * 24); // Random hour between 0-23
+            const randomMinute = Math.floor(Math.random() * 60); // Random minute between 0-59
+            const randomSecond = Math.floor(Math.random() * 60); // Random second between 0-59
+
+            return new Date(2024, 0, 1, randomHour, randomMinute, randomSecond); // 2024, January 1st, random time
+        }
+
+        // Function to create new incidents with random times
+        function createIncidents() {
+            for (let i = 1; i <= maxIncidents; i++) {
+                const os = Math.random() > 0.5 ? "Linux" : "Windows"; // Randomly assign Linux or Windows
+                const timeCreated = getRandomTime(); // Generate random time
+                const inc = {
+                    incNumber: `INC-${i}`,
+                    assignee: "Unassigned",
+                    timeCreated: timeCreated.toLocaleString(), // Convert to string format
+                    assignmentGroup: assignmentGroup,
+                    os: os,  // Randomly assigned OS
+                    time: timeCreated // Store actual time for assignee rules
+                };
+                incidents.push(inc);
+            }
+            updateIncidentTable();
+            populateIncidentSelect();
+        }
+
+        // Function to update the table with incidents data
+        function updateIncidentTable() {
+            const tableBody = document.querySelector("#incidents tbody");
+            tableBody.innerHTML = ""; // Clear the table body before updating
+
+            incidents.forEach(incident => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${incident.incNumber}</td>
+                    <td>${incident.assignee}</td>
+                    <td>${incident.timeCreated}</td>
+                    <td>${incident.assignmentGroup}</td>
+                    <td>${incident.os}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to populate the incident select dropdown
+        function populateIncidentSelect() {
+            const incidentSelect = document.getElementById("incidentSelect");
+            incidents.forEach(incident => {
+                const option = document.createElement("option");
+                option.value = incident.incNumber;
+                option.textContent = incident.incNumber;
+                incidentSelect.appendChild(option);
+            });
+        }
+
+        // Function to populate Assignee options based on the selected INC
+        function populateOSAndAssignee() {
+            const selectedInc = document.getElementById("incidentSelect").value;
+            const assigneeSelect = document.getElementById("assigneeSelect");
+            const incident = incidents.find(inc => inc.incNumber === selectedInc);
+            const os = incident ? incident.os : "";
+
+            // Check the creation time of the INC to apply the time-based rule
+            const creationTime = incident ? new Date(incident.time) : new Date();
+            const hours = creationTime.getHours();
+            const isDaytime = hours >= 10 && hours <= 20; // Between 10:00 AM and 08:00 PM
+
+            // Update Assignee options based on the OS and time rule
+            assigneeSelect.innerHTML = ""; // Clear existing assignees
+
+            if (os === "Windows") {
+                if (isDaytime) {
+                    // Between 10:00 AM and 08:00 PM: Ayesha and Irshad
+                    assignees.windows.slice(0, 2).forEach(name => {
+                        const option = document.createElement("option");
+                        option.value = name;
+                        option.textContent = name;
+                        assigneeSelect.appendChild(option);
+                    });
+                } else {
+                    // Other hours: Jagan and Kishore
+                    assignees.windows.slice(2, 4).forEach(name => {
+                        const option = document.createElement("option");
+                        option.value = name;
+                        option.textContent = name;
+                        assigneeSelect.appendChild(option);
+                    });
+                }
+            } else if (os === "Linux") {
+                if (isDaytime) {
+                    // Between 10:00 AM and 08:00 PM: Bhavana and Haneesh
+                    assignees.linux.slice(0, 2).forEach(name => {
+                        const option = document.createElement("option");
+                        option.value = name;
+                        option.textContent = name;
+                        assigneeSelect.appendChild(option);
+                    });
+                } else {
+                    // Other hours: Vetri and Madhuri
+                    assignees.linux.slice(2, 4).forEach(name => {
+                        const option = document.createElement("option");
+                        option.value = name;
+                        option.textContent = name;
+                        assigneeSelect.appendChild(option);
+                    });
+                }
+            }
+        }
+
+        // Function to assign an incident to a selected assignee
+        function assignIncident() {
+            const selectedInc = document.getElementById("incidentSelect").value;
+            const selectedAssignee = document.getElementById("assigneeSelect").value;
+
+            if (selectedInc === "") {
+                alert("Please select an incident to assign.");
+                return;
+            }
+
+            const incident = incidents.find(inc => inc.incNumber === selectedInc);
+            if (incident) {
+                incident.assignee = selectedAssignee;
+                updateIncidentTable(); // Refresh the table with the updated assignee
+            }
+        }
+
+        // Initialize the incidents on page load
+        window.onload = function() {
+            createIncidents(); // Create 15 incidents when the page loads
+        };
+    </script>
+</body>
+</html>
